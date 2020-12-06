@@ -118,7 +118,7 @@ class PHPAutoStyle {
 		$this->_char_next_next=null;
 		$this->_char_next=null;
 
-		$this->_chars=mb_substr($this->_input, $this->_index, 5);
+		$this->_chars=mb_substr($this->_input, $this->_index, 8);
 		$this->_char_length=mb_strlen($this->_chars);
 		if($this->_char_length == 5) {
 			$this->_char_next_next_next_next=$this->_chars[4];
@@ -137,6 +137,28 @@ class PHPAutoStyle {
 		}
 	}
 
+	private function keyword($keyword) {
+		// echo "1. add $keyword to result " . $this->_index . PHP_EOL;
+		$temp=$this->_index;
+		$this->_index+=mb_strlen($keyword) - 1;
+		$this->update();
+		// Skip whitespace after keyword
+		while($this->starts($this->_chars, " ") === true || $this->starts($this->_chars, "\t") === true || $this->starts($this->_chars, "\n") === true) {
+			$this->_index++;
+			$this->update();
+		}
+		if($this->_char == '(') {
+			$this->_open_for=true;
+			$this->_open_for_code="";
+		}
+		else {
+			// echo "2. add $keyword to result " . $this->_index . PHP_EOL;
+			// $this->_index=$temp;
+			$this->update();
+			$this->result.=$keyword. " ";
+			// echo "RESULT: " . $this->result . PHP_EOL;
+		}
+	}
 	// removeLastLine
 	public function removeLastLine() {
 		// $count=substr_count($this->input, "\n");
@@ -180,6 +202,14 @@ class PHPAutoStyle {
 					else if($this->starts($this->_chars, "'")) {
 						$this->_open_sngstring=true;
 						$this->_open_string="";
+					}
+
+					else if($this->starts($this->_chars, "function")) {
+						$this->keyword("function");
+					}
+
+					else if($this->starts($this->_chars, "return")) {
+						$this->keyword("return");
 					}
 
 					else if($this->starts($this->_chars, "for")) {
